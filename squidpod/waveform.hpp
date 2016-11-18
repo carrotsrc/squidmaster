@@ -16,6 +16,9 @@ using analysis_waveform_op = void(*)(waveform<T,Alloca>&);
 
 template<typename T, typename Alloca = std::allocator<T>> 
 class waveform {
+    /*
+     * Type definitions
+     */
 public:
     
     typedef T value_type;
@@ -30,6 +33,9 @@ public:
     using passop_generic = void(*)(waveform<T,Alloca>&);
     using passop = std::function<void(waveform<T,Alloca>&)>;
     
+    /*
+     * Iterator definitions
+     */
 public:
     struct frame {
         
@@ -111,12 +117,17 @@ public:
     typedef frame_iterator iterator;
     typedef const_frame_iterator const_iterator;
     
+    
+    /*
+     * Member Functions
+     */
 public:
     waveform();
     waveform(pointer raw, frame_count nframes, channel_count nchannels);
     waveform(channel_container channels, frame_count nframes, channel_count nchannels);
 
     waveform(const waveform& orig);
+    waveform(const waveform&& orig);
     
     virtual ~waveform();
 
@@ -227,13 +238,29 @@ waveform<T,Alloca>::~waveform()
 
 
 template<typename T, typename Alloca>
-waveform<T,Alloca>::waveform(const waveform<T,Alloca>& orig) {
-    _channels = orig._channels;
-    _nframes = orig._nframes;
-    _nsamples = orig._channels;
-    _nchannels = orig._nchannels;
-    _window = orig._window;
+waveform<T,Alloca>::waveform(const waveform<T,Alloca>& orig)
+    : _nframes(orig._nframes) , _nsamples(orig._nsamples)
+    , _nchannels(orig._nchannels), _window(false)
+{
+    _ninternal = _nframes + static_cast<std::uint32_t>(
+                                    static_cast<float>(_nframes)/2.0f
+                                );
+    _channels.push_back(_allocator.allocate(_ninternal));
+    _channels.push_back(_allocator.allocate(_ninternal));
+    
+    auto lptr = orig._channels[audio_channel::stereo_left];
+    auto rptr = orig._channels[audio_channel::stereo_right];
+    std::copy(lptr, lptr+_nframes, _channels[audio_channel::stereo_left]);
+    std::copy(rptr, rptr+_nframes, _channels[audio_channel::stereo_right]);
+    
 }
+
+template<typename T, typename Alloca>
+waveform<T,Alloca>::waveform(const waveform<T,Alloca>&& orig)
+    : _nframes(orig._nframes) , _nsamples(orig._nsamples)
+    , _nchannels(orig._nchannels), _window(false)
+    , _channels(orig._channels), _ninternal(orig._ninternal)
+{ }
 
 template<typename T, typename Alloca>
 frame_count waveform<T,Alloca>::num_frames() const {

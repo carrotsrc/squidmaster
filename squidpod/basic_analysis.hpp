@@ -1,16 +1,16 @@
 #ifndef BASIC_ANALYSIS_HPP
 #define BASIC_ANALYSIS_HPP
-#include <iostream>
+
 
 #include "waveform.hpp"
 namespace squid { namespace analysis {
-    
     /**
      * Analysis pass for printing frames to stdout
      * @param wf The waveform to print
      */
     template<typename T, typename Alloca>
     void echo_frames(waveform<T,Alloca> & wf) {
+        #include <iostream>
         for(auto frame : wf) {
             std::cout << frame.left << "  " << frame.right << std::endl;
         }

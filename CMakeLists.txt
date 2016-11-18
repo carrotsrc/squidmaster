@@ -4,4 +4,5 @@ project (Squidmaster_pod)
 set(CMAKE_CXX_STANDARD 14)
 
 add_subdirectory(squidpod)
+add_subdirectory(squidjack)
 add_subdirectory(tools)
